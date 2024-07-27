@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reproductor de Música MP3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .playlist {
+            list-style-type: none;
+            padding: 0;
+            display: none;
+        }
+        .playlist li {
+            margin: 5px 0;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .controls button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 24px;
+        }
+        #addSong {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reproductor de Música MP3</h1>
+
+    <input type="file" id="addSong" accept=".mp3">
+    <ul class="playlist" id="playlist"></ul>
+
+    <div class="controls">
+        <button id="shuffle">&#x1F500;</button>
+        <button id="prev">&#x23EE;</button>
+        <button id="play">&#x23EF;</button>
+        <button id="next">&#x23ED;</button>
+        <button id="repeat">&#x1F501;</button>
+    </div>
+
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playlist = document.getElementById('playlist');
+        const addSongInput = document.getElementById('addSong');
+        let currentSongIndex = 0;
+        let shuffleMode = false;
+        let repeatMode = false;
+        let songs = [];
+
+        addSongInput.addEventListener('change', () => {
+            const files = addSongInput.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.dataset.src = URL.createObjectURL(file);
+                playlist.appendChild(listItem);
+                songs.push(listItem);
+                listItem.addEventListener('click', () => {
+                    loadSong(i);
+                });
+            }
+            if (songs.length > 0) {
+                playlist.style.display = 'block';
+                loadSong(0);
+            }
+        });
+
+        function loadSong(index) {
+            if (index >= 0 && index < songs.length) {
+                currentSongIndex = index;
+                audioPlayer.src = songs[index].dataset.src;
+                audioPlayer.play();
+            }
+        }
+
+        document.getElementById('play').addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+
+        document.getElementById('prev').addEventListener('click', () => {
+            loadSong((currentSongIndex - 1 + songs.length) % songs.length);
+        });
+
+        document.getElementById('next').addEventListener('click', () => {
+            loadSong((currentSongIndex + 1) % songs.length);
+        });
+
+        document.getElementById('shuffle').addEventListener('click', () => {
+            shuffleMode = !shuffleMode;
+        });
+
+        document.getElementById('repeat').addEventListener('click', () => {
+            repeatMode = !repeatMode;
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            if (repeatMode) {
+                audioPlayer.play();
+            } else if (shuffleMode) {
+                loadSong(Math.floor(Math.random() * songs.length));
+            } else {
+                loadSong((currentSongIndex + 1) % songs.length);
+            }
+        });
+    </script>
+</body>
+</html>
